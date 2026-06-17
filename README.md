@@ -1,37 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NutriPro — AI Nutrition Plans Tailored to Your Job
 
-## Getting Started
+NutriPro generates a personalized **3-day nutrition plan based on your profession** and work conditions, applying **chrononutrition** (meal timing aligned to your work schedule). A night nurse, a sedentary developer, and a construction worker each get a different plan.
 
-First, run the development server:
+Built with **Next.js 15**, **React 19**, and **Google Gemini**.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Why "based on the job"
+
+Most nutrition apps only ask for age, weight, and goals. NutriPro's premise is that **your job shapes your nutritional needs** — shift hours, where and how fast you eat, equipment access, and physical load. It prompts an "elite nutritionist specialized in workplace nutrition and applied chronobiology" with that full work context.
+
+The form captures:
+
+- **Target profession** (e.g. night nurse, sedentary web developer, BTP laborer)
+- Typical work hours / shift pattern → drives chrononutrition timing
+- Where meals are eaten (office without kitchen, worksite with microwave, vehicle, canteen)
+- Effective break time and equipment access (fridge / microwave / kettle)
+- Physical activity level at work
+- Country of residence (for locally available ingredients) and cuisine preferences
+- Age, health goals, dietary constraints
+
+## How it works
+
+```
+form data → build job-specific prompt (chrononutrition + local ingredients)
+          → Gemini (streaming)
+          → extract structured JSON
+          → render plan: risk analysis, priority nutrients,
+            3-day meals, alternatives, practical tips, meal-prep
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The model returns a strict JSON schema: per-job risk analysis (physical + mental), priority nutrients with sources, a full 3-day meal plan with prep time and local ingredients, alternatives, chrononutrition tips, and meal-prep suggestions.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Profession-driven personalization** — the plan adapts to the specific job, not just body metrics.
+- **Chrononutrition** — meal timing aligned to work/shift schedule.
+- **Localized ingredients** — adapts to the user's country (15+ supported) and cuisine preferences.
+- **Streaming generation** — responses stream from Gemini for responsiveness.
+- **Dev mock mode** — runs with a realistic simulated plan when no API key is set (`NODE_ENV=development`), so the UI is demoable offline.
 
-## Learn More
+## Getting started
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm install
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# add your Gemini API key
+echo "GEMINI_API_KEY=your_key_here" > .env
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+npm run dev   # http://localhost:3000
+```
 
-## Deploy on Vercel
+Get a key from [Google AI Studio](https://aistudio.google.com/apikey). Without a key in development, the API returns a simulated plan.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Tech stack
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# nutripro
+- **Framework:** Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS v4
+- **AI:** Google Gemini (`@google/genai`), model `gemini-2.5-flash-preview`
+- **Rendering:** `react-markdown` for formatted plan output
+
+## API
+
+`POST /api/nutrition-plan` — body is the form data (`job`, `age`, `healthGoals`, `workHours`, `mealLocations`, `equipmentAccess`, `activityLevel`, `country`, `cuisinePreferences`, `constraints`). Returns `{ nutritionPlan }` as structured JSON.
